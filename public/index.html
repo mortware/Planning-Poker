@@ -26,8 +26,8 @@
     </div>
     <div id="workspace-panel" class="container" style="display: none;">
         <div class="row">
-            <div id="playing-table" class="container">
-                <canvas width="480" height="380">No canvas support</canvas>
+            <div class="container">
+                <canvas id="canvas" width="480" height="380">No canvas support</canvas>
             </div>
         </div>
         <div class="row">
@@ -78,8 +78,9 @@
     </div>
 </body>
 <script type="text/javascript" src="/socket.io/socket.io.js"></script>
-<script type="text/javascript" src="/scripts/knockout-2.2.1.js"></script>
-<script type="text/javascript" src="/scripts/mustache.js"></script>
+<script type="text/javascript" src="/lib/knockout-2.2.1.js"></script>
+<script type="text/javascript" src="/lib/mustache.js"></script>
 <script type="text/javascript" src="/app/viewmodels/player.js"></script>
-<script type="text/javascript" src="/scripts/client.js"></script>
+<script type="text/javascript" src="/app/table.js"></script>
+<script type="text/javascript" src="/app/client.js"></script>
 </html>
