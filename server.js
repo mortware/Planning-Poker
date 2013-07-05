@@ -1,10 +1,9 @@
-// create globals
+// load modules and globals
 var express = require('express'),
     http = require('http'),
     sio = require('socket.io'),
     dict = require('dict');
 
-// internal modules
 var Client = require("./lib/client.js"),
     Game = require("./lib/game.js");
 
@@ -14,17 +13,15 @@ var app = express(),
     port = process.env.PORT || 5000,
     game = null;
 
-var io = sio.listen(server);
 // start listening
-server.listen(port, function() {
-    //console.log('   app listening on http://' + http.address() + ':' + http.address().port);
-});
+var io = sio.listen(server);
+server.listen(port);
 
 // define paths to static files
 app.use('/css', express.static(__dirname + '/public/css'));
 app.use('/app', express.static(__dirname + '/public/app'));
 app.use('/img', express.static(__dirname + '/public/img'));
-app.use('/scripts', express.static(__dirname + '/public/scripts'));
+app.use('/lib', express.static(__dirname + '/public/lib'));
 
 // define path to main client application
 app.get('/', function (req, res) {
