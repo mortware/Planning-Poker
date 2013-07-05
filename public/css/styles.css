@@ -1,0 +1,13 @@
+form { margin: 0px; }
+
+
+#welcome-panel { }
+
+#nickname-box { margin: 100px 50px; }
+
+#message-log { height: 250px; overflow-y: auto; }
+
+@media (max-width: 767px) {
+    .player { float: left; }
+    #message-log { height: 100px; }
+}
