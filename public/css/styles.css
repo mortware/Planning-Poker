@@ -1,4 +1,10 @@
-form { margin: 0px; }
+html, body {
+  width:  100%;
+  height: 100%;
+  margin: 0px;
+}
+
+form { margin: 0px; }*
 
 
 #welcome-panel { }
@@ -7,7 +13,10 @@ form { margin: 0px; }
 
 #message-log { height: 250px; overflow-y: auto; }
 
+
+
 @media (max-width: 767px) {
     .player { float: left; }
     #message-log { height: 100px; }
+    body { padding: 0; }
 }

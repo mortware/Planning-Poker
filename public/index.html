@@ -26,12 +26,10 @@
     </div>
     <div id="workspace-panel" class="container" style="display: none;">
         <div class="row">
-            <div class="container">
-                <canvas id="canvas" width="480" height="380">No canvas support</canvas>
-            </div>
+            <div id="table-container" class="container"></div>
         </div>
         <div class="row">
-            <div class="span12 well">
+            <div class="span12">
                 <div class="form-inline pull-left" data-bind="visible: hasGame">
                     <form data-bind="submit: setVote">
                         <input type="text" class="input input-mini" placeholder="Estimate" data-bind="value: player.vote, enable: (hasGame && !player.isObserver())" />
@@ -80,7 +78,8 @@
 <script type="text/javascript" src="/socket.io/socket.io.js"></script>
 <script type="text/javascript" src="/lib/knockout-2.2.1.js"></script>
 <script type="text/javascript" src="/lib/mustache.js"></script>
+<script type="text/javascript" src="/lib/kinetic-v4.5.4.min.js"></script>
 <script type="text/javascript" src="/app/viewmodels/player.js"></script>
-<script type="text/javascript" src="/app/table.js"></script>
+<script type="text/javascript" src="/app/viewmodels/table.js"></script>
 <script type="text/javascript" src="/app/client.js"></script>
 </html>

@@ -20,12 +20,12 @@ var ViewModel = function () {
             message: '<li><div class="pull-left" style="width: 100px;"><span class="badge sender">{{sender}}</span></div>{{text}}<span class="pull-right">{{time}}</span>'
         };
 
-    var setName = function () {
-        var name = player.name().trim();
+    var setName = function (name) {
+        var n = name || player.name().trim();
         //var n = name().trim();
-        if (name && name.length <= MAX_NICKNAME_LENGTH) {
+        if (n && n.length <= MAX_NICKNAME_LENGTH) {
             $('#welcome-panel').hide();
-            player.name(name);
+            player.name(n);
             connect();
         } else {
             player.name('');
@@ -87,6 +87,8 @@ var ViewModel = function () {
             $('#workspace-panel').show();
             $('#message-input').focus();
             player.id(data.clientId);
+
+            //table.init(players);
         });
 
         socket.on('new-message', function (data) {
@@ -130,7 +132,6 @@ var ViewModel = function () {
         socket.on('set-vote', function (data) {
             var client = getClient(data.clientId);
             client.hasVoted(data.hasVoted);
-            table.update();
         });
 
         socket.on('end-game', function (data) {
@@ -160,8 +161,6 @@ var ViewModel = function () {
         players.push(p);
 
         insertMessage(SERVER_DISPLAY_NAME, p.name() + ' has joined the room', true, false, true);
-
-        table.init(players());
     }
 
     function removeClient(client, announce) {
@@ -212,7 +211,6 @@ var ViewModel = function () {
     }
 
     function setVoteStatus(clientId, hasVoted) {
-        table.update();
         var $client = getClient(clientId);
 
         if (hasVoted)
@@ -247,5 +245,10 @@ var ViewModel = function () {
 
 $(function () {
     $('#nickname-input').focus();
-    ko.applyBindings(new ViewModel());
+
+    var vm = new ViewModel();
+    ko.applyBindings(vm);
+
+    vm.setName('Debug');
+
 });
