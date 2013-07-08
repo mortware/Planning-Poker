@@ -7,8 +7,48 @@
     <script src="../public/lib/bootstrap.min.js"></script>
 
     <style type="text/css">
-        ul.card-list { }
-            ul.card-list li { display: inline-block; line-height: 70px; width: 50px; background: rgb(101, 7, 7); margin: 5px; text-align: center; color: white; border-radius: 4px;box-shadow: 2px 2px 4px #979797;font-weight: bold;font-size: 14pt; text-shadow: 0px 0px 10px #c2c2c2; }
+        ul.card-list {
+        }
+
+            ul.card-list li {
+                cursor: pointer;
+                display: inline-block;
+                line-height: 70px;
+                width: 50px;
+                background: rgb(101, 7, 7);
+                margin: 5px;
+                text-align: center;
+                color: white;
+                border-radius: 4px;
+                box-shadow: 2px 2px 4px #979797;
+                font-weight: bold;
+                font-size: 14pt;
+                text-shadow: 0px 0px 10px #333;
+                background: rgb(206,220,231); /* Old browsers */
+                background: -moz-linear-gradient(top, rgb(206,220,231) 0%, rgb(89,106,114) 100%); /* FF3.6+ */
+                background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgb(206,220,231)), color-stop(100%,rgb(89,106,114))); /* Chrome,Safari4+ */
+                background: -webkit-linear-gradient(top, rgb(206,220,231) 0%,rgb(89,106,114) 100%); /* Chrome10+,Safari5.1+ */
+                background: -o-linear-gradient(top, rgb(206,220,231) 0%,rgb(89,106,114) 100%); /* Opera 11.10+ */
+                background: -ms-linear-gradient(top, rgb(206,220,231) 0%,rgb(89,106,114) 100%); /* IE10+ */
+                background: linear-gradient(to bottom, rgb(206,220,231) 0%,rgb(89,106,114) 100%); /* W3C */
+                filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cedce7', endColorstr='#596a72',GradientType=0 ); /* IE6-9 */
+            }
+
+        .push {
+            -webkit-transition: all 0.2s ease;
+            -moz-transition: all 0.2s ease;
+            -o-transition: all 0.2s ease;
+            -ms-transition: all 0.2s ease;
+            transition: all 0.2s ease;
+        }
+
+            .push:hover {
+                -webkit-transform: translate(0,-5px);
+                -moz-transform: translate(0,-5px);
+                -o-transform: translate(0,-5px);
+                -ms-transform: translate(0,-5px);
+                transform: translate(0,-5px);
+            }
     </style>
 
 </head>
@@ -16,7 +56,7 @@
     <!--    <div class="container">-->
     <div class="row text-center">
         <ul class="unstyled card-list" data-bind="foreach: deck">
-            <li><span data-bind="text: $data"></span></li>
+            <li class="push"><span data-bind="text: $data"></span></li>
         </ul>
     </div>
     <!--    </div>-->

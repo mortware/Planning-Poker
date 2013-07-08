@@ -28,10 +28,10 @@
         <div class="row">
             <div id="player-container" class="container"></div>
         </div>
-        <div class="row">
-            <div id="deck-container" class="container" data-bind="with: table">
-                <ul data-bind="foreach: deck">
-                    <li><span data-bind="text: $data"></span></li>
+        <div class="row" data-bind="with: table">
+            <div class="row text-center">
+                <ul class="unstyled deck" data-bind="foreach: deck">
+                    <li class="btn btn-danger btn-large push"><span data-bind="text: $data"></span></li>
                 </ul>
             </div>
         </div>
