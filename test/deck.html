@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <title>Card Test</title>
+
+    <link href="../public/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="../public/lib/bootstrap.min.js"></script>
+
+    <style type="text/css">
+        ul.card-list { }
+            ul.card-list li { display: inline-block; line-height: 70px; width: 50px; background: rgb(101, 7, 7); margin: 5px; text-align: center; color: white; border-radius: 4px;box-shadow: 2px 2px 4px #979797;font-weight: bold;font-size: 14pt; text-shadow: 0px 0px 10px #c2c2c2; }
+    </style>
+
+</head>
+<body>
+    <!--    <div class="container">-->
+    <div class="row text-center">
+        <ul class="unstyled card-list" data-bind="foreach: deck">
+            <li><span data-bind="text: $data"></span></li>
+        </ul>
+    </div>
+    <!--    </div>-->
+</body>
+<script src="../public/lib/knockout-2.2.1.js"></script>
+<script src="../public/app/viewmodels/table.js"></script>
+<script type="text/javascript">
+    var vm = new Table();
+    ko.applyBindings(vm);
+    vm.createDeck();
+</script>
+</html>
