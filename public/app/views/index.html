@@ -26,7 +26,14 @@
     </div>
     <div id="workspace-panel" class="container" style="display: none;">
         <div class="row">
-            <div id="table-container" class="container"></div>
+            <div id="player-container" class="container"></div>
+        </div>
+        <div class="row">
+            <div id="deck-container" class="container" data-bind="with: table">
+                <ul data-bind="foreach: deck">
+                    <li><span data-bind="text: $data"></span></li>
+                </ul>
+            </div>
         </div>
         <div class="row">
             <div class="span12">
@@ -78,8 +85,7 @@
 <script type="text/javascript" src="/socket.io/socket.io.js"></script>
 <script type="text/javascript" src="/lib/knockout-2.2.1.js"></script>
 <script type="text/javascript" src="/lib/mustache.js"></script>
-<script type="text/javascript" src="/lib/kinetic-v4.5.4.min.js"></script>
 <script type="text/javascript" src="/app/viewmodels/player.js"></script>
 <script type="text/javascript" src="/app/viewmodels/table.js"></script>
-<script type="text/javascript" src="/app/client.js"></script>
+<script type="text/javascript" src="/app/viewmodels/client.js"></script>
 </html>

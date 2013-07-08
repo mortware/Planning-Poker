@@ -4,6 +4,7 @@ var MAX_NICKNAME_LENGTH = 15,
 var ViewModel = function () {
 
     var player = new Player(),
+        table = new Table(),
         players = ko.observableArray([]),
         hasGame = ko.observable(false),
         canVote = ko.observable(false);
@@ -63,6 +64,7 @@ var ViewModel = function () {
     var vm = {
         player: player,
         players: players,
+        table: table,
         message: message,
         setName: setName,
         toggleObserver: toggleObserver,
@@ -226,6 +228,8 @@ var ViewModel = function () {
             player.vote('');
             player.hasVoted(false);
         });
+
+        table.createDeck();
 
         hasGame(true);
 

@@ -25,7 +25,7 @@ app.use('/lib', express.static(__dirname + '/public/lib'));
 
 // define path to main client application
 app.get('/', function (req, res) {
-    res.sendfile(__dirname + '/public/index.html');
+    res.sendfile(__dirname + '/public/app/views/index.html');
 });
 
 // set the log level of socket.io 
