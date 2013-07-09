@@ -1,38 +1,30 @@
-var Table = function (players) {
+define(['ko', 'config'],
+    function (ko, config) {
+        return function () {
 
-    var hasGameStarted = ko.observable(false),
-    	deck = ko.observableArray([]);
+            var self = this;
 
+            this.hasGameStarted = ko.observable(false);
+            this.deck = ko.observableArray([]);
 
-    var card = {
-    	value: 0
+            this.createDeck = function() {
+                self.deck.removeAll();
+
+                self.deck.push(0);
+                self.deck.push(0.5);
+                self.deck.push(1);
+                self.deck.push(2);
+                self.deck.push(3);
+                self.deck.push(5);
+                self.deck.push(8);
+                self.deck.push(13);
+                self.deck.push(20);
+                self.deck.push(40);
+                self.deck.push(100);
+                self.deck.push('~');
+                self.deck.push('?');
+                self.deck.push('c');
+            };
+        };
     }
-
-    var me = null;
-    
-    var vm = {
-    	createDeck: createDeck,
-        deck: deck
-    };
-
-    return vm;
-
-    function createDeck(){
-    	deck.removeAll();
-
-    	deck.push(0);
-    	deck.push(0.5);
-    	deck.push(1);
-    	deck.push(2);
-    	deck.push(3);
-    	deck.push(5);
-    	deck.push(8);
-    	deck.push(13);
-    	deck.push(20);
-    	deck.push(40);
-    	deck.push(100);
-    	deck.push('~');
-    	deck.push('?');
-    	deck.push('c');
-    }
-}
+);

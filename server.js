@@ -25,7 +25,7 @@ app.use('/lib', express.static(__dirname + '/public/lib'));
 
 // define path to main client application
 app.get('/', function (req, res) {
-    res.sendfile(__dirname + '/public/app/views/index.html');
+    res.sendfile(__dirname + '/public/app/views/shell.html');
 });
 
 // set the log level of socket.io 
@@ -90,7 +90,7 @@ function connect(socket, data) {
     console.log('Client connected: \'%s\'', client.nickname);
     console.log('  Client Id: \t%s', client.id);
     console.log('  Socket Id: \t%s', socket.id);
-    
+
     // let the player know that its ready
     socket.emit('set-ready', {
         clientId: client.id
@@ -244,7 +244,7 @@ function submitVote(socket, data) {
             clientId: client.id,
             hasVoted: hasVoted
         });
-        
+
         // check for game end
         game.setVote(client.id, data.vote);
         if (!game.needsVotes()) {

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>Planning Poker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="text/javascript" data-main="/app/init" src="/lib/require-2.1.8.min.js"></script>
+    <script>require(['/socket.io/socket.io.js'])</script>
+    <link type="text/css" rel="stylesheet" href="http://code.jquery.com/mobile/1.3.1/jquery.mobile-1.3.1.min.css" />
+    <link type="text/css" rel="stylesheet" href="/css/bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+    <div class="viewport">
+        <div class="frame">
+            <div id="menu" class="menu nav-collapse in collapse width">
+                <div class="collapse-inner">
+                    <div class="navbar">
+                        <div class="navbar-inner">
+                            <a class="brand" href="#">Chat</a>
+                        </div>
+                    </div>
+                    <div class="menu-inner">
+                        <form data-bind="submit: setName">
+                            <input type="text" id="name-input" class="input input-block-level" placeholder="Enter your name..." data-bind="value: player.name" />
+                            <button type="submit" class="btn btn-block" data-role="button">Lets play!</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="view">
+                <div class="navbar">
+                    <div class="navbar-inner">
+                        <a class="brand" href="#">Planning Poker</a>
+                        <ul class="nav">
+                            <li><a href="#" data-toggle="collapse" data-target="#menu"><<</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div id="content">
+                    <div>
+                        <div class="row text-center">
+                            <ul class="unstyled player-list" data-bind="foreach: players">
+                                <li class="player">
+                                    <img src="/img/player.png"/>
+                                    <img src="/img/check.png" class="status-icon" data-bind="visible: hasVoted"/>
+                                    <img src="/img/eye.png" class="status-icon" data-bind="visible: isObserver"/>
+                                    <span data-bind="text: name"></span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div data-bind="with: table">
+                        <div class="row text-center">
+                            <ul class="unstyled card-list" data-bind="foreach: deck">
+                                <li class="card push"><span data-bind="text: $data"></span></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <button type="button" data-role="button" data-bind="click: startGame">Start</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--    <div>-->
+
+    <!--        <div data-role="panel" id="login-panel">-->
+    <!--            <form data-bind="submit: setName">-->
+    <!--                <input type="text" id="name-input" placeholder="Enter your name..." data-bind="value: player.name" />-->
+    <!--                <button type="submit" data-role="button">Lets play!</button>-->
+    <!--            </form>-->
+    <!--        </div>-->
+    <!---->
+    <!--        <div data-role="header">-->
+    <!--            <h1>Planning Poker</h1>-->
+    <!--        </div>-->
+    <!---->
+    <!--        <div data-role="content">-->
+    <!--            <div id="workspace-panel">-->
+    <!--                <div id="player-container">-->
+    <!--                </div>-->
+    <!---->
+    <!--                <div data-bind="with: table">-->
+    <!--                    <div class="row text-center">-->
+    <!--                        <ul class="unstyled deck" data-bind="foreach: deck">-->
+    <!--                            <li class="push"><span data-bind="text: $data"></span></li>-->
+    <!--                        </ul>-->
+    <!--                    </div>-->
+    <!--                </div>-->
+    <!---->
+    <!--                $1$                <div data-bind="visible: hasGame">#1#-->
+    <!--                $1$                    <form data-bind="submit: setVote">#1#-->
+    <!--                $1$                        <input type="text" class="input input-mini" placeholder="Estimate" data-bind="value: player.vote, enable: (hasGame && !player.isObserver())" />#1#-->
+    <!--                $1$                        <button type="submit" class="btn btn-info" data-bind="enable: (hasGame && !player.isObserver())">Submit</button>#1#-->
+    <!--                $1$                    </form>#1#-->
+    <!--                $1$                </div>#1#-->
+    <!---->
+    <!--                <div>-->
+    <!--                    <button type="button" data-role="button" data-bind="click: startGame">Start</button>-->
+    <!--                </div>-->
+    <!---->
+    <!--                <div>-->
+    <!--                    <button type="button" class="" data-bind="click: toggleObserver, css: { 'btn-success': player.isObserver() }" title="Toggle observer mode"><i class="icon-eye-open"></i></button>-->
+    <!--                    <button class="">Sign out</button>-->
+    <!--                </div>-->
+    <!--            </div>-->
+    <!--            <div class="row">-->
+    <!---->
+    <!--                <div class="span4">-->
+    <!--                    <div>-->
+    <!--                        <ul id="client-list" class="unstyled" data-bind="foreach: players">-->
+    <!--                            <li class="player">-->
+    <!--                                <i data-bind="css: { 'icon-eye-open': isObserver(), 'icon-user': !isObserver() }"></i>-->
+    <!--                                <span data-bind="text: name"></span>-->
+    <!--                                <i data-bind="css: { 'icon-ok': hasVoted() }"></i>-->
+    <!--                            </li>-->
+    <!--                        </ul>-->
+    <!--                        <div class="clearfix"></div>-->
+    <!--                    </div>-->
+    <!--                </div>-->
+    <!---->
+    <!--                <div class="span8">-->
+    <!--                    <div>-->
+    <!--                        <ul id="message-log" class="unstyled" data-bind="foreach: messages">-->
+    <!--                            <li>-->
+    <!--                                <div class="pull-left" style="width: 100px;">-->
+    <!--                                    <span class="badge sender" data-bind="text: sender"></span>-->
+    <!--                                </div>-->
+    <!--                                <span data-bind="text: text"></span>-->
+    <!--                                <span class="pull-right" data-bind="text: time"></span>-->
+    <!--                            </li>-->
+    <!--                        </ul>-->
+    <!--                        <form data-bind="submit: sendMessage">-->
+    <!--                            <input type="text" class="input search-query input-block-level" data-bind="value: message" placeholder="Message..." />-->
+    <!--                        </form>-->
+    <!--                    </div>-->
+    <!--                </div>-->
+    <!--            </div>-->
+    <!--        </div>-->
+    <!--    </div>-->
+    <!--    <div data-role="footer">-->
+    <!--        <h4>Copyright &copy; 2013 - Mortware</h4>-->
+    <!--    </div>-->
+</body>
+
+</html>

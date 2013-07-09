@@ -1,83 +1,45 @@
-html, body {
-    width: 100%;
-    height: 100%;
-    margin: 0px;
-}
+body { width: 100%; height: 100%; margin: 0px; padding: 0px; overflow: hidden; }
 
-form {
-    margin: 0px;
-}
+.viewport { position: absolute; top: 0; bottom: 0; right: 0; left: 0; overflow: hidden; }
+    .viewport .frame { position: absolute; width: 200%; top: 0; bottom: 0; left: 0; }
 
-* #welcome-panel {
-}
+.menu { height: 100%; }
+    .menu.collapse { float: left; height: 100% !important; width: auto; }
+        .menu.collapse.height { position: relative; height: 0; overflow: hidden; -webkit-transition: height 0.35s ease; -moz-transition: height 0.35s ease; -o-transition: height 0.35s ease; transition: height 0.35s ease; }
+        .menu.collapse.width { position: relative; width: 0; overflow: hidden; -webkit-transition: width 0.35s ease; -moz-transition: width 0.35s ease; -o-transition: width 0.35s ease; transition: width 0.35s ease; }
+        .menu.collapse.in.width { width: auto; }
+        .menu.collapse.in.height { height: auto; }
+.collapse-inner { position: relative; width: 300px; height: 100%; }
+.menu-inner { padding: 10px; }
+.view { width: 50%; height: 100%; overflow: hidden; }
 
-#nickname-box {
-    margin: 100px 50px;
-}
 
-#message-log {
-    height: 250px;
-    overflow-y: auto;
-}
 
-ul.deck .btn {
-    width: 15px; margin: 4px 0 0 0;
-    height: 50px;
-    line-height: 50px;
-}
+/*form { margin: 0px; }
 
-ul.card-list {
-}
-    ul.card-list li {
-        cursor: pointer;
-        display: inline-block;
-        line-height: 70px;
-        width: 50px;
-        background: rgb(101, 7, 7);
-        margin: 5px;
-        text-align: center;
-        color: white;
-        border-radius: 4px;
-        box-shadow: 2px 2px 4px #979797;
-        font-weight: bold;
-        font-size: 14pt;
-        text-shadow: 0px 0px 10px #333;
-        background: rgb(206,220,231); /* Old browsers */
-        background: -moz-linear-gradient(top, rgb(206,220,231) 0%, rgb(89,106,114) 100%); /* FF3.6+ */
-        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgb(206,220,231)), color-stop(100%,rgb(89,106,114))); /* Chrome,Safari4+ */
-        background: -webkit-linear-gradient(top, rgb(206,220,231) 0%,rgb(89,106,114) 100%); /* Chrome10+,Safari5.1+ */
-        background: -o-linear-gradient(top, rgb(206,220,231) 0%,rgb(89,106,114) 100%); /* Opera 11.10+ */
-        background: -ms-linear-gradient(top, rgb(206,220,231) 0%,rgb(89,106,114) 100%); /* IE10+ */
-        background: linear-gradient(to bottom, rgb(206,220,231) 0%,rgb(89,106,114) 100%); /* W3C */
-        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cedce7', endColorstr='#596a72',GradientType=0 ); /* IE6-9 */
-    }
+* #welcome-panel { }
 
-.push {
-    -webkit-transition: all 0.2s ease;
-    -moz-transition: all 0.2s ease;
-    -o-transition: all 0.2s ease;
-    -ms-transition: all 0.2s ease;
-    transition: all 0.2s ease;
-}
+#nickname-box { margin: 100px 50px; }
 
-    .push:hover {
-        -webkit-transform: translate(0,-4px);
-        -moz-transform: translate(0,-4px);
-        -o-transform: translate(0,-4px);
-        -ms-transform: translate(0,-4px);
-        transform: translate(0,-4px);
-    }
+#message-log { height: 250px; overflow-y: auto; }*/
 
-@media (max-width: 767px) {
-    .player {
-        float: left;
-    }
+ul.deck .btn { width: 15px; margin: 4px 0 0 0; height: 50px; line-height: 50px; }
 
-    #message-log {
-        height: 100px;
-    }
+ul.card-list li { cursor: pointer; display: inline-block; line-height: 70px; width: 50px; background: rgb(101, 7, 7); margin: 5px; text-align: center; color: white; border-radius: 4px; box-shadow: 2px 2px 4px #979797; font-weight: bold; font-size: 14pt; text-shadow: 0px 0px 10px #333; background: rgb(206,220,231); /* Old browsers */ background: -moz-linear-gradient(top, rgb(206,220,231) 0%, rgb(89,106,114) 100%); /* FF3.6+ */ background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgb(206,220,231)), color-stop(100%,rgb(89,106,114))); /* Chrome,Safari4+ */ background: -webkit-linear-gradient(top, rgb(206,220,231) 0%,rgb(89,106,114) 100%); /* Chrome10+,Safari5.1+ */ background: -o-linear-gradient(top, rgb(206,220,231) 0%,rgb(89,106,114) 100%); /* Opera 11.10+ */ background: -ms-linear-gradient(top, rgb(206,220,231) 0%,rgb(89,106,114) 100%); /* IE10+ */ background: linear-gradient(to bottom, rgb(206,220,231) 0%,rgb(89,106,114) 100%); /* W3C */ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cedce7', endColorstr='#596a72',GradientType=0 ); /* IE6-9 */ }
+ul.player-list li { float: left; }
+.player { position: relative; } 
+.player .status-icon { position: absolute;top: 0;right: 0;}
+.player span { display: block; }
 
-    body {
-        padding: 0;
-    }
-}
+
+.push { -webkit-transition: all 0.2s ease; -moz-transition: all 0.2s ease; -o-transition: all 0.2s ease; -ms-transition: all 0.2s ease; transition: all 0.2s ease; }
+
+    .push:hover { -webkit-transform: translate(0,-4px); -moz-transform: translate(0,-4px); -o-transform: translate(0,-4px); -ms-transform: translate(0,-4px); transform: translate(0,-4px); }
+
+/*@media (max-width: 767px) {
+    .player { float: left; }
+
+    #message-log { height: 100px; }
+
+    body { padding: 0; }
+}*/
