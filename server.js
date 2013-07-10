@@ -76,6 +76,10 @@ io.sockets.on('connection', function (socket) {
         submitVote(socket, data);
     });
 
+    socket.on('cancel-game', function() {
+        cancelGame(socket);
+    });
+
 });
 
 // create a client for the socket
@@ -248,13 +252,22 @@ function submitVote(socket, data) {
         // check for game end
         game.setVote(client.id, data.vote);
         if (!game.needsVotes()) {
+
             io.sockets.emit(client.room).emit('end-game', {
-                average: game.getAverage()
+                average: game.getAverage(),
+                results: game.getResults()
             });
         }
-
-        message(socket, { message: client.nickname + ' has submitted a vote.' });
     }
+}
+
+function cancelGame(socket) {
+    var client = clients.get(socket.id);
+    console.log(client.nickname + ' cancelled the game');
+    
+    io.sockets.emit(client.room).emit('cancel-game', {
+        player: client.nickname,
+    });
 }
 
 function generateId() {

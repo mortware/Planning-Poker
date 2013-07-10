@@ -6,7 +6,7 @@
         //jquerymobile: 'http://code.jquery.com/mobile/1.3.1/jquery.mobile-1.3.1.min',
         config: 'config'
     },
-    shim: { bootstrap: { deps: ["jquery"]}}
+    shim: { bootstrap: { deps: ["jquery"] } }
 });
 
 require(['ko', '/app/viewmodels/main.js', 'jquery', 'bootstrap'],
@@ -15,10 +15,7 @@ require(['ko', '/app/viewmodels/main.js', 'jquery', 'bootstrap'],
 
         ko.applyBindings(vm, document.getElementById('main-page'));
 
-        
-
-        //$('#login-panel').panel('open');
+        vm.bindEventToList('.card-list', '.card', vm.setVote);
         $('#name-input').focus();
-
     }
 );

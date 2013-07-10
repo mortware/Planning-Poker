@@ -15,12 +15,14 @@ define(['ko', 'config', 'viewmodels/player', 'viewmodels/table'],
             this.player = new playerViewModel();
             this.table = new tableViewModel();
             this.players = ko.observableArray([]);
-            this.hasGame = ko.observable(false);
+            this.isConnected = ko.observable(false);
+            this.isGameRunning = ko.observable(false);
+            this.averageVote = ko.observable();
             this.canVote = ko.observable(false);
             this.room = ko.observable('');
             this.message = ko.observable('');
             this.messages = ko.observableArray([]);
-            
+
             var socket = null;
 
             this.setName = function (sender, args) {
@@ -36,8 +38,8 @@ define(['ko', 'config', 'viewmodels/player', 'viewmodels/table'],
             };
 
             this.toggleObserver = function () {
-                player.isObserver(!player.isObserver());
-                socket.emit('set-observer', { isObserver: player.isObserver() });
+                self.player.isObserver(!self.player.isObserver());
+                socket.emit('set-observer', { isObserver: self.player.isObserver() });
             };
 
             this.sendMessage = function () {
@@ -53,22 +55,35 @@ define(['ko', 'config', 'viewmodels/player', 'viewmodels/table'],
                 socket.emit('new-game', null);
             };
 
+            this.cancelGame = function () {
+                socket.emit('cancel-game');
+            };
+
             this.setVote = function (vote) {
-                var v = vote || parseInt(player.vote());
+                var v = vote == self.player.vote() ? null : vote;
 
                 if (v) {
+                    self.player.vote(v);
                     self.player.hasVoted(true);
                     socket.emit('submit-vote', { vote: v });
+                } else {
+                    self.player.vote('');
+                    self.player.hasVoted(false);
+                    socket.emit('submit-vote', { vote: '' });
                 }
             };
 
-            var bindEventToList = function (rootSelector, selector, callback, eventName) {
+            this.bindEventToList = function (rootSelector, selector, callback, eventName) {
                 var eName = eventName || 'click';
-                $(rootSelector).on(eName, selector, function () {
+
+                function eventHandler() {
                     var data = ko.dataFor(this);
                     callback(data);
                     return false;
-                });
+                }
+
+                $(rootSelector).unbind(eName, selector, eventHandler);
+                $(rootSelector).on(eName, selector, eventHandler);
             };
 
             function bindSocketEvents() {
@@ -77,12 +92,13 @@ define(['ko', 'config', 'viewmodels/player', 'viewmodels/table'],
                 });
 
                 socket.on('disconnect', function () {
+                    self.isConnected(false);
                     insertMessage(config.SERVER_DISPLAY_NAME, 'Server offline', true, false, true);
                 });
 
                 socket.on('set-ready', function (data) {
-                    $('#workspace-panel').show();
-                    $('#message-input').focus();
+
+                    self.isConnected(true);
                     self.player.id(data.clientId);
 
                     //table.init(players);
@@ -97,6 +113,7 @@ define(['ko', 'config', 'viewmodels/player', 'viewmodels/table'],
 
                 socket.on('new-game', function (data) {
                     newGame(data.player, data.playercount);
+                    self.player.vote('');
                 });
 
                 socket.on('list-clients', function (data) {
@@ -130,8 +147,32 @@ define(['ko', 'config', 'viewmodels/player', 'viewmodels/table'],
                 });
 
                 socket.on('end-game', function (data) {
-                    self.hasGame(false);
-                    insertMessage('Game', 'Game complete, the average estimate was ' + data.average, true, false, true);
+                    reset();
+
+                    var voteTotal = 0;
+                    var isIndeterminate = false;
+
+                    for (var i = 0; i < data.results.length; i++) {
+                        var player = getClient(data.results[i].clientId);
+
+                        var vote = data.results[i].vote;
+                        player.vote(vote);
+
+                        var voteValue = parseInt(vote);
+                        if (!isNaN(voteValue)) {
+                            voteTotal += voteValue;
+                        } else {
+                            isIndeterminate = true;
+                        }
+                    }
+                    var average = isIndeterminate ? 'indeterminate' : parseInt(voteTotal / data.results.length);
+
+                    insertMessage('Game', 'Game complete, the average estimate was ' + average, true, false, true);
+                });
+
+                socket.on('cancel-game', function(data) {
+                    reset();
+                    insertMessage('Game', data.player + ' cancelled the game.', true, false, true);
                 });
             }
 
@@ -172,17 +213,19 @@ define(['ko', 'config', 'viewmodels/player', 'viewmodels/table'],
                 return client;
             }
 
-            function setVoteStatus(clientId, hasVoted) {
-                var $client = getClient(clientId);
-
-                if (hasVoted)
-                    $client.find('.status-icon').addClass('icon-ok');
-                else
-                    $client.find('.status-icon').removeClass('icon-ok');
+            function reset() {
+                self.isGameRunning(false);
+                self.player.vote('');
+                self.player.hasVoted(false);
+                self.averageVote('');
+                
+                ko.utils.arrayForEach(self.players(), function (player) {
+                    player.vote('');
+                    player.hasVoted(false);
+                });
             }
 
             function newGame(playername, playercount) {
-
                 // reset everyone's vote
                 ko.utils.arrayForEach(self.players(), function (player) {
                     player.vote('');
@@ -191,10 +234,10 @@ define(['ko', 'config', 'viewmodels/player', 'viewmodels/table'],
 
                 self.table.createDeck();
 
-                self.hasGame(true);
+                self.isGameRunning(true);
 
                 insertMessage(config.SERVER_DISPLAY_NAME, playername + ' has started a new game. ' + playercount + ' players.', true, false, true);
-                bindEventToList('.card-list', '.card', self.setVote);
+                
             }
 
             function getTime() {

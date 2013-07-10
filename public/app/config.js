@@ -1,6 +1,6 @@
 ﻿define(function () {
 
-    var MAX_NICKNAME_LENGTH = 15,
+    var MAX_NICKNAME_LENGTH = 12,
         SERVER_DISPLAY_NAME = 'Server';
 
     var config = {
