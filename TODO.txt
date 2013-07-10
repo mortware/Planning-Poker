@@ -1,0 +1,5 @@
+Flip the chat arrow when chat panel is expanded
+Add a send button to the chat message box
+Indicate the current user (different coloured guy or something)
+Auto scroll messages to bottom
+Add sign-out button (so users can re-enter name)
