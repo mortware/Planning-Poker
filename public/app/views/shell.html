@@ -6,80 +6,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script type="text/javascript" data-main="/app/init" src="/lib/require-2.1.8.min.js"></script>
     <script>require(['/socket.io/socket.io.js'])</script>
-    <link type="text/css" rel="stylesheet" href="http://code.jquery.com/mobile/1.3.1/jquery.mobile-1.3.1.min.css" />
     <link type="text/css" rel="stylesheet" href="/css/bootstrap.min.css" />
     <link type="text/css" rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
-    <div id="welcome-panel" data-bind="visible: !isConnected()">
-        <form data-bind="submit: setName">
-            <input type="text" id="name-input" class="input-block-level" maxlength="12" placeholder="Enter your name..." data-bind="value: player.name" />
-            <button type="submit" class="btn btn-block" data-role="button">Lets play!</button>
-        </form>
-    </div>
-    <div id="viewport" data-bind="visible: isConnected()">
-        <div class="navbar">
-            <div class="navbar-inner">
-                <a class="brand" href="#">Planning Poker</a>
-                <ul class="nav">
-                    <li><a href="#" data-toggle="collapse" data-target="#menu"></a></li>
-                </ul>
-                <form class="navbar-form pull-left">
-                    <button type="button" class="btn" data-bind="click: toggleObserver, css: { 'btn-success': player.isObserver() }, enable: !isGameRunning()" title="Toggle observer mode"><i class="icon-eye-open"></i></button>
-                    <button type="button" class="btn btn-primary" data-bind="click: startGame, enable: !isGameRunning()">Start</button>
-                    <button type="button" class="btn btn-danger" data-bind="click: cancelGame, enable: isGameRunning">Cancel</button>
-                </form>
-
-            </div>
-        </div>
-        <div id="content">
-            <div>
-                <div class="text-center">
-                    <ul class="unstyled player-list" data-bind="foreach: players">
-                        <li class="player" data-bind="css: { observer: isObserver }">
-                            <img class="player-icon" src="/img/player.png" />
-                            <img src="/img/check.png" class="status-icon" data-bind="visible: hasVoted" />
-                            <img src="/img/eye.png" class="status-icon" data-bind="visible: isObserver" />
-                            <span class="player-name" data-bind="text: name"></span>
-                            <span class="player-name" data-bind="text: vote"></span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <div class="clearfix"></div>
-            <div data-bind="visible: canPlay">
-                <div class="text-center" data-bind="with: table">
-                    <ul class="unstyled card-list" data-bind="foreach: deck">
-                        <li class="card btn btn-large btn-danger" data-bind="css: { 'btn-success': $root.player.vote() == $data }">
-                            <span data-bind="text: $data"></span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <div data-bind="visible: averageVote">
-                <h2 data-bind="text: averageVote"></h2>
-            </div>
-        </div>
-        <div class="push"></div>
-    </div>
-    <div id="footer" data-bind="visible: isConnected">
-        <a data-toggle="collapse" data-target="#chat-panel" style="display: block; text-align: center;"><i class="icon-chevron-up"></i></a>
-        <div id="chat-panel" class="collapse in">
-            <ul id="message-log" class="unstyled" data-bind="foreach: messages">
-                <li>
-                    <div class="chat-name pull-left">
-                        <span class="badge sender" data-bind="text: sender"></span>
-                    </div>
-                    <span class="chat-message" data-bind="text: text"></span>
-                    <span class="chat-timestamp pull-right" data-bind="text: time"></span>
-                </li>
-            </ul>
-            <form data-bind="submit: sendMessage">
-                <input type="text" class="input search-query input-block-level" data-bind="value: message" placeholder="Message..." />
+    <div id="shell">
+        <div id="welcome-panel" data-bind="visible: !isConnected() && !isBusy()" style="display: none;">
+            <form data-bind="submit: setName">
+                <input type="text" id="name-input" class="input-block-level" maxlength="12" placeholder="Enter your name..." data-bind="value: player.name, valueUpdate: 'afterkeydown'" autocomplete="off" />
+                <button type="submit" class="btn btn-block" data-bind="enable: player.name().length > 0">Lets play!</button><br />
             </form>
         </div>
-    </div>
+        <div id="viewport" data-bind="visible: isConnected" style="display: none;">
+            <div class="navbar">
+                <div class="navbar-inner">
+                    <a class="brand" href="#">Planning Poker</a>
+                    <ul class="nav">
+                        <li><a href="#" data-toggle="collapse" data-target="#menu"></a></li>
+                    </ul>
+                    <form class="navbar-form pull-left">
+                        <button type="button" class="btn" data-bind="click: toggleObserver, css: { 'btn-success': player.isObserver() }, enable: canToggleObserver" title="Toggle observer mode"><i class="icon-eye-open"></i></button>
+                        <button type="button" class="btn btn-primary" data-bind="click: startGame, enable: canStartGame">Start</button>
+                        <button type="button" class="btn btn-danger" data-bind="click: cancelGame, enable: canCancelGame">Cancel</button>
+                    </form>
 
+                </div>
+            </div>
+            <div id="content">
+                <div>
+                    <div class="text-center">
+                        <ul class="unstyled player-list" data-bind="foreach: players">
+                            <li class="player" data-bind="css: { observer: isObserver }">
+                                <img class="player-icon" src="/img/player.png" />
+                                <img src="/img/check.png" class="status-icon" data-bind="visible: hasVoted" />
+                                <img src="/img/eye.png" class="status-icon" data-bind="visible: isObserver" />
+                                <span class="player-name" data-bind="text: name"></span>
+                                <span class="player-name" data-bind="text: vote"></span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+                <div data-bind="visible: canPlay">
+                    <div class="text-center" data-bind="with: table">
+                        <ul class="unstyled card-list" data-bind="foreach: deck">
+                            <li class="card btn btn-large btn-danger" data-bind="css: { 'btn-success': $root.player.vote() == $data }">
+                                <span data-bind="text: $data"></span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div data-bind="visible: averageVote">
+                    <h2 data-bind="text: averageVote"></h2>
+                </div>
+            </div>
+            <div class="push"></div>
+        </div>
+        <div id="footer" data-bind="visible: isConnected, disable: isBusy" style="display: none;">
+            <a data-toggle="collapse" data-target="#chat-panel" style="display: block; text-align: center;"><i class="icon-chevron-up"></i></a>
+            <div id="chat-panel" class="collapse in">
+                <ul id="message-log" class="unstyled" data-bind="foreach: messages">
+                    <li>
+                        <div class="chat-name pull-left">
+                            <span class="badge sender" data-bind="text: sender"></span>
+                        </div>
+                        <span class="chat-message" data-bind="text: text"></span>
+                        <span class="chat-timestamp pull-right" data-bind="text: time"></span>
+                    </li>
+                </ul>
+                <form data-bind="submit: sendMessage">
+                    <input type="text" class="input search-query input-block-level" data-bind="value: message" placeholder="Message..." />
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="shell-overlay" data-bind="visible: isBusy">
+        <div class="loading-panel">
+            <p>Please wait...<br />
+                <img src="/img/loading.gif" />
+            </p>
+            
+        </div>
+    </div>
 </body>
 
 </html>

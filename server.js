@@ -91,9 +91,7 @@ function connect(socket, data) {
     // save the client info to the dictionary object for quick access
     clients.set(socket.id, client);
 
-    console.log('Client connected: \'%s\'', client.nickname);
-    console.log('  Client Id: \t%s', client.id);
-    console.log('  Socket Id: \t%s', socket.id);
+    console.log('\'%s\' connected', client.nickname);
 
     // let the player know that its ready
     socket.emit('set-ready', {
@@ -218,17 +216,14 @@ function setObserver(socket, data) {
 }
 
 function newGame(socket) {
-    var client = clients.get(socket.id);
-
-    // get players
     game = new Game();
-
     clients.forEach(function (value, key) {
         if (!value.isObserver) {
             game.addPlayer(value.id);
         }
     });
 
+    var client = clients.get(socket.id);
     io.sockets.emit(client.room).emit('new-game', {
         player: client.nickname,
         playercount: game.numPlayers()
@@ -238,7 +233,6 @@ function newGame(socket) {
 function submitVote(socket, data) {
     if (game) {
         var client = clients.get(socket.id);
-        console.log(client.nickname + ' voted ' + data.vote);
 
         // broadcast vote status
         var hasVoted = false;
@@ -263,8 +257,6 @@ function submitVote(socket, data) {
 
 function cancelGame(socket) {
     var client = clients.get(socket.id);
-    console.log(client.nickname + ' cancelled the game');
-    
     io.sockets.emit(client.room).emit('cancel-game', {
         player: client.nickname,
     });
@@ -274,8 +266,6 @@ function generateId() {
     var s4 = function () {
         return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
     };
-
     return (s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4());
 }
-
-console.log('Chat server is running and listening to port %d...', port);
+console.log('Planning Poker is running and listening to port %d...', port);

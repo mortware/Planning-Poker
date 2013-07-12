@@ -1,6 +1,7 @@
 ﻿define(function () {
 
     var self = this,
+        // names for debugging (members of Chic!)
         names = ['Nile', 'Bernard', 'Tony', 'Luther', 'Norma', 'Jocelyn', 'Omar', 'Robert', 'Sylver', 'Lenny', 'Jill', 'Sonny', 'Gerardo', 'Bill', 'Nathaniel', 'Jessica', 'Alfa', 'Luci', 'Jerry', 'Cherie', 'Curt', 'Jenn', 'Richard'];
 
     var MAX_NICKNAME_LENGTH = 12,

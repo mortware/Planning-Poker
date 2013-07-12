@@ -13,13 +13,11 @@
 require(['ko', '/app/viewmodels/main.js', 'jquery', 'config', 'helper', 'bootstrap'],
     function (ko, appViewModel, $, config, helper) {
         var vm = appViewModel;
-
         ko.applyBindings(vm, document.getElementById('main-page'));
-
         helper.bindEventToList('.card-list', '.card', vm.setVote);
         $('#name-input').focus();
 
         // debug section - remove to allow users to enter their own name
-        // vm.setName('debug', config.getRandomName());
+        //vm.setName('debug', config.getRandomName());
     }
 );
