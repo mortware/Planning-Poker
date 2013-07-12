@@ -32,10 +32,10 @@ app.get('/', function (req, res) {
 // (level 2 means we won't see heartbeats)
 io.set('log level', 2);
 
-// io.configure(function(){
-//     io.set("transports", ["xhr-polling"]);
-//     io.set("polling duration", 10);
-// });
+io.configure(function(){
+    io.set("transports", ["xhr-polling"]);
+    io.set("polling duration", 10);
+});
 
 // set the transports order
 io.set('transports', ['websocket', 'xhr-polling']);
