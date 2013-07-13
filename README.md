@@ -1,4 +1,9 @@
-planning-poker
+Planning Poker
 ==============
 
-A nodejs-based web application that provides story point estimation, basic chat and observer features.
+Story point estimation, basic chat and planning features.
+
+Key libraries
+- [Node.js](http://node.js)
+- [Knockout](http://knockoutjs.com)
+- [RequireJS](http://requirejs.org)
