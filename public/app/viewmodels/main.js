@@ -1,7 +1,5 @@
 define(['ko', 'config', 'viewmodels/player', 'viewmodels/table'], function (ko, config, playerViewModel, tableViewModel) {
 
-    var self = this;
-
     var player = new playerViewModel(),
         table = new tableViewModel();
 
@@ -9,7 +7,7 @@ define(['ko', 'config', 'viewmodels/player', 'viewmodels/table'], function (ko, 
         isBusy = ko.observable(false),          // application is busy
         canToggleObserver = ko.observable(true),
         canStartGame = ko.observable(true),
-        canCancelGame = ko.observable(false),
+        canStopGame = ko.observable(false),
         isConnected = ko.observable(false),
         isGameRunning = ko.observable(false),
         averageVote = ko.observable(),
@@ -42,23 +40,25 @@ define(['ko', 'config', 'viewmodels/player', 'viewmodels/table'], function (ko, 
     };
     var sendMessage = function () {
         var m = message().trim();
-        if (m) { socket.emit('new-message', { message: m }); }
+        if (m) {
+            socket.emit('send-message', { message: m });
+        }
         message('');
     };
     var startGame = function () {
         isGameRunning(true);
         canStartGame(false);
-        canCancelGame(true);
+        canStopGame(true);
         canToggleObserver(false);
 
         if (!player.isObserver()) {
             player.isPlaying(true);
         }
 
-        socket.emit('new-game', null);
+        socket.emit('start-game', null);
     };
-    var cancelGame = function () {
-        canCancelGame(false);
+    var stopGame = function () {
+        canStopGame(false);
         socket.emit('cancel-game');
     };
     var setVote = function (vote) {
@@ -82,7 +82,7 @@ define(['ko', 'config', 'viewmodels/player', 'viewmodels/table'], function (ko, 
         isBusy: isBusy,
         canToggleObserver: canToggleObserver,
         canStartGame: canStartGame,
-        canCancelGame: canCancelGame,
+        canStopGame: canStopGame,
         isConnected: isConnected,
         isGameRunning: isGameRunning,
         averageVote: averageVote,
@@ -96,96 +96,103 @@ define(['ko', 'config', 'viewmodels/player', 'viewmodels/table'], function (ko, 
         toggleObserver: toggleObserver,
         sendMessage: sendMessage,
         startGame: startGame,
-        cancelGame: cancelGame,
-        setVote: setVote,
+        stopGame: stopGame,
+        setVote: setVote
     }
 
-    // private funtions
+    // private functions
     function connect() {
-        socket = io.connect();
+        socket = io.connect('',{
+            reconnect: false
+        });
         bindSocketEvents();
     }
 
     function bindSocketEvents() {
         // all socket events are handled in here
         socket.on('connect', function () {
-            onConnected();
+            onConnect();
         });
         socket.on('disconnect', function () {
             onDisconnect();
         });
-        socket.on('set-ready', function (data) {
-            onReady(data);
+
+        socket.on('receive-message', function (data) {
+            onReceiveMessage(data, data.isServer);
         });
-        socket.on('new-message', function (data) {
-            onMessageReceived(data);
+        socket.on('set-room-players', function (data) {
+            onUpdateClientList(data);
         });
-        socket.on('new-game', function (data) {
-            onGameCreated(data);
+        socket.on('set-player-ready', function (data) {
+            onSetPlayerReady(data);
         });
-        socket.on('list-clients', function (data) {
-            onClientsListed(data);
+        socket.on('set-player-observer', function (data) {
+            onSetPlayerObserver(data);
         });
-        socket.on('set-observer', function (data) {
-            onSetObserver(data);
+        socket.on('set-player-presence', function (data) {
+            onSetPlayerPresence(data);
         });
-        socket.on('set-presence', function (data) {
-            onPresenceSet(data);
+        socket.on('set-player-vote-status', function (data) {
+            onSetPlayerVote(data);
         });
-        socket.on('set-vote', function (data) {
-            onVoteSet(data);
+        socket.on('set-game-started', function (data) {
+            onGameStarted(data);
         });
-        socket.on('end-game', function (data) {
-            onEndGame(data);
+        socket.on('set-game-ended', function (data) {
+            onGameEnded(data);
         });
-        socket.on('cancel-game', function (data) {
-            onCancelGame(data);
+        socket.on('set-game-cancelled', function (data) {
+            onGameCancelled(data);
         });
     }
-    function onConnected() {
+
+    function onConnect() {
         // the client has connected and informs the server
-        socket.emit('connect', { nickname: player.name() });
+        socket.emit('register-player', { name: player.name() });
     }
-    function onDisconnected() {
+
+    function onDisconnect() {
         // the client has disconnected from the server
         isConnected(false);
-        insertMessage(config.SERVER_DISPLAY_NAME, 'Server offline', true, false, true);
+        insertMessage(config.SERVER_DISPLAY_NAME, 'Disconnected from server', false, true);
     }
-    function onReady(data) {
+
+    function onSetPlayerReady(data) {
         // the application is ready
         isConnected(true);
-        player.id(data.clientId);
+        player.id(data.playerId);
         isBusy(false);
     }
-    function onClientsListed(data) {
-        // the server is providing a list of all clients
 
-        // add all clients to a list
+    function onUpdateClientList(data) {
+        // the server is providing a list of all players
+
+        // add all players to a list
         players.removeAll();
         for (var i = 0, len = data.clients.length; i < len; i++) {
-            addClient(data.clients[i]);
+            addPlayer(data.clients[i]);
         }
 
         // welcome message
-        insertMessage(config.SERVER_DISPLAY_NAME, 'Welcome to the table', true, false, true);
+        insertMessage(config.SERVER_DISPLAY_NAME, 'Welcome to the table', false, true);
     }
-    function onMessageReceived(data) {
-        // a new message is received from the server
-        var from = data.client.nickname;
-        var message = data.message;
-        insertMessage(from, message, true, false, false);
+
+    function onReceiveMessage(data, isServer) {
+        insertMessage(data.playerName, data.message, false, isServer);
     }
-    function onSetObserver(data) {
-        var client = getClient(data.clientId);
+
+    function onSetPlayerObserver(data) {
+        var client = getPlayer(data.clientId);
         client.isObserver(data.isObserver);
 
         // if client is me, then allow me to change 
         // to the observer status
-        if (data.clientId === player.id()) {
+        if (data.playerId === player.id()) {
             canToggleObserver(true);
         }
     }
-    function onGameCreated(data) {
+
+    function onGameStarted(data) {
         // a new game has started
 
         // reset everything
@@ -201,96 +208,98 @@ define(['ko', 'config', 'viewmodels/player', 'viewmodels/table'], function (ko, 
 
         isGameRunning(true);
         canStartGame(false);
-        canCancelGame(true);
+        canStopGame(true);
         canToggleObserver(false);
-        insertMessage(config.SERVER_DISPLAY_NAME, data.player + ' has started a new game. ' + data.playercount + ' players.', true, false, true);
+        insertMessage(config.SERVER_DISPLAY_NAME, data.player + ' has started a new game. ' + data.playercount + ' players.', false, true);
     }
-    function onPresenceSet(data) {
+
+    function onSetPlayerPresence(data) {
         // another player has joined or left the room
         if (data.state == 'online') {
-            addClient(data.client, true);
+            addPlayer(data.player);
         }
         else if (data.state == 'offline') {
-            removeClient(data.client, true);
+            removePlayer(data.player);
         }
     }
-    function onVoteSet(data) {
+
+    function onSetPlayerVote(data) {
         // a player has submitted a vote
-        var client = getClient(data.clientId);
+        var client = getPlayer(data.clientId);
         client.hasVoted(data.hasVoted);
     }
-    function onEndGame(data) {
+
+    function onGameEnded(data) {
         // performs all end game logic
         // 1. reset the table
         // 2. calculate the average (if possible)
-        // 3. notify all clients that the game has finished
+        // 3. notify all players that the game has finished
         reset();
 
-        var voteTotal = 0;
-        var isIndeterminate = false;
-
         for (var i = 0; i < data.results.length; i++) {
-            var player = getClient(data.results[i].clientId);
-
-            var vote = data.results[i].vote;
-            player.vote(vote);
-
-            var voteValue = parseInt(vote);
-            if (!isNaN(voteValue)) {
-                voteTotal += voteValue;
-            } else {
-                isIndeterminate = true;
-            }
+            var player = getPlayer(data.results[i].playerId);
+            player.vote(data.results[i].vote);
         }
-        var average = isIndeterminate ? 'indeterminate' : parseInt(voteTotal / data.results.length);
 
-        insertMessage('Game', 'Game complete, the average estimate was ' + average, true, false, true);
+        if (isNaN(data.average)){
+            insertMessage('Game', 'Game complete, the average estimate was not determined', false, true);
+        } else {
+            insertMessage('Game', 'Game complete, the average estimate was ' + data.average, false, true);
+            averageVote(data.average);
+        }
 
         // order the players by vote
         players.sort(function (left, right) {
             return parseInt(left.vote()) > parseInt(right.vote());
         });
     }
-    function onCancelGame(data) {
+
+    function onGameCancelled(data) {
         // the current game has been cancelled
         reset();
-        insertMessage('Game', data.player + ' cancelled the game.', true, false, true);
+        insertMessage('Game', data.player + ' cancelled the game.', false, true);
     }
 
-    function addClient(client) {
+    function addPlayer(player) {
         var p = new playerViewModel();
-        p.id(client.id);
-        p.name(client.nickname);
-        p.isObserver(client.isObserver);
+        p.id(player.id);
+        p.name(player.name);
+        p.isObserver(player.isObserver);
 
         players.push(p);
 
-        insertMessage(config.SERVER_DISPLAY_NAME, p.name() + ' has joined the room', true, false, true);
+        insertMessage(config.SERVER_DISPLAY_NAME, p.name() + ' has joined the room', false, true);
     }
-    function removeClient(client) {
-        players.remove(function (item) { return item.id() == client.id; });
-        insertMessage(config.SERVER_DISPLAY_NAME, client.nickname + ' has left the room', true, false, true);
+
+    function removePlayer(player) {
+        players.remove(function (p) {
+            return p.id() == player.id;
+        });
+        insertMessage(config.SERVER_DISPLAY_NAME, player.name + ' has left the room', false, true);
     }
-    function insertMessage(sender, message, showTime, isMe, isServer) {
-        var m = new chatMessage();
+
+    function insertMessage(sender, message, isMe, isServer) {
+        var m = new ChatMessage();
         m.isMe = isMe;
         m.isServer = isServer;
         m.sender = sender;
         m.text = message;
-        m.time = showTime ? getTime() : '';
+        m.time = getTime();
 
         messages.push(m);
     }
-    function getClient(clientId) {
-        var client = ko.utils.arrayFirst(players(), function (item) {
-            return item.id() === clientId;
+
+    function getPlayer(playerId) {
+        var player = ko.utils.arrayFirst(players(), function (item) {
+            return item.id() === playerId;
         });
-        return client;
+        return player;
     }
+
     function reset() {
         isGameRunning(false);
         canStartGame(true);
-        canCancelGame(false);
+        canStopGame(false);
         canToggleObserver(true);
 
         player.reset();
@@ -305,11 +314,13 @@ define(['ko', 'config', 'viewmodels/player', 'viewmodels/table'], function (ko, 
             player.hasVoted(false);
         });
     }
+
     function getTime() {
         var date = new Date();
         return (date.getHours() < 10 ? '0' + date.getHours().toString() : date.getHours()) + ':' + (date.getMinutes() < 10 ? '0' + date.getMinutes().toString() : date.getMinutes());
     }
-    function chatMessage() {
+
+    function ChatMessage() {
         this.sender = 'Test';
         this.text = '';
         this.time = null;

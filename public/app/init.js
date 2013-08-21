@@ -18,6 +18,6 @@ require(['ko', '/app/viewmodels/main.js', 'jquery', 'config', 'helper', 'bootstr
         $('#name-input').focus();
 
         // debug section - remove to allow users to enter their own name
-        //vm.setName('debug', config.getRandomName());
+        vm.setName('debug', config.getRandomName());
     }
 );

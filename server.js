@@ -4,12 +4,12 @@ var express = require('express'),
     sio = require('socket.io'),
     dict = require('dict');
 
-var Client = require("./lib/client.js"),
+var Player = require("./lib/player.js"),
     Game = require("./lib/game.js");
 
 var app = express(),
     server = http.createServer(app),
-    clients = dict(),
+    players = dict(),
     port = process.env.PORT || 5000,
     game = null;
 
@@ -19,20 +19,21 @@ server.listen(port);
 
 // define paths to static files
 app.use('/css', express.static(__dirname + '/public/css'));
+app.use('/fonts', express.static(__dirname + '/public/css/fonts'));
 app.use('/app', express.static(__dirname + '/public/app'));
 app.use('/img', express.static(__dirname + '/public/img'));
 app.use('/lib', express.static(__dirname + '/public/lib'));
 
 // define path to main client application
 app.get('/', function (req, res) {
-    res.sendfile(__dirname + '/public/app/views/shell.html');
+    res.sendfile(__dirname + '/public/app/views/shell.html', null, null);
 });
 
 // set the log level of socket.io 
 // (level 2 means we won't see heartbeats)
 io.set('log level', 2);
 
-io.configure(function(){
+io.configure(function () {
     io.set("transports", ["xhr-polling"]);
     io.set("polling duration", 10);
 });
@@ -42,226 +43,156 @@ io.set('transports', ['websocket', 'xhr-polling']);
 
 // socket.io events - each connection goes through here
 // and each event is emitted from the client
-io.sockets.on('connection', function (socket) {
-
-    socket.on('connect', function (data) {
-        connect(socket, data);
+io.sockets.on('connection', function (client) {
+    client.on('register-player', function (data) {
+        onRegisterPlayer(client, data);
     });
-
-    socket.on('new-message', function (data) {
-        message(socket, data);
+    client.on('send-message', function (data) {
+        onSendMessage(client, data);
     });
-
-    socket.on('subscribe', function (data) {
-        subscribe(socket, data);
+    client.on('set-observer', function (data) {
+        onSetObserver(client, data);
     });
-
-    socket.on('unsubscribe', function (data) {
-        unsubscribe(socket, data);
+    client.on('start-game', function () {
+        onStartGame(client);
     });
-
-    socket.on('disconnect', function () {
-        disconnect(socket);
+    client.on('cancel-game', function () {
+        onCancelGame(client);
     });
-
-    socket.on('set-observer', function (data) {
-        setObserver(socket, data);
+    client.on('submit-vote', function (data) {
+        onSubmitVote(client, data);
     });
-
-    socket.on('new-game', function () {
-        newGame(socket);
-    });
-
-    socket.on('submit-vote', function (data) {
-        submitVote(socket, data);
-    });
-
-    socket.on('cancel-game', function() {
-        cancelGame(socket);
-    });
-
 });
 
-// create a client for the socket
-function connect(socket, data) {
+io.sockets.on('disconnect', function (client){
+    onUnregisterPlayer(client);
+});
+
+function onRegisterPlayer(client, data) {
     // create a new client/user
-    var client = new Client(generateId(), socket.id);
-    client.nickname = data.nickname;
+    var player = new Player(client.id);
+    player.name = data.name;
+    player.room = 'game1';
 
     // save the client info to the dictionary object for quick access
-    clients.set(socket.id, client);
+    players.set(player.id, player);
 
-    console.log('\'%s\' connected', client.nickname);
+    client.join(player.room);
 
-    // let the player know that its ready
-    socket.emit('set-ready', {
-        clientId: client.id
+    console.log('\'%s\' connected', player.name);
+
+    // let the client/player know that its ready
+    client.emit('set-player-ready', {
+        playerId: player.id
     });
 
-    subscribe(socket, {
-        room: 'lobby'
+    updatePresence(client, 'online');
+
+    // send list of players to all
+    client.emit('set-room-players', {
+        clients: getClientsInRoom(player.room)
     });
 }
-
-// when a client disconnects, unsubscribe to all rooms
-function disconnect(socket) {
+function onUnregisterPlayer(client) {
     // get a list of rooms for the client
-    var rooms = io.sockets.manager.roomClients[socket.id];
+    var rooms = io.sockets.manager.roomClients[client.id];
 
-    // unsubscribe
+    // un-subscribe all players
     for (var room in rooms) {
         if (room && rooms[room]) {
-            unsubscribe(socket, {
-                room: room.replace('/', '')
-            });
+            // update all players about offline presence
+            updatePresence(room, client, 'offline');
+
+            // remove the client from the room
+            client.leave(room);
         }
     }
-    delete clients.delete(socket.id);
-}
+    delete players.delete(player.id);
 
-// receive chat message from a client and send it to the relevant room
-function message(socket, data) {
-    var client = clients.get(socket.id);
-
-    // socket.broadcast sends to all other clients except the sender
-    io.sockets.emit(client.room).emit('new-message', {
-        client: client,
-        message: data.message,
-        room: client.room
+    // send list of players to all
+    client.emit('update-client-list', {
+        clients: getClientsInRoom(player.room)
     });
 }
-
-// subscribe a client to a room
-function subscribe(socket, data) {
-    var rooms = getRooms();
-    var client = clients.get(socket.id);
-
-    // check if room exists
-    if (rooms.indexOf('/' + data.room) < 0) {
-        socket.broadcast.emit('addroom', {
-            room: data.room
-        });
-    }
-    client.room = data.room;
-
-    // subscribe client to the room
-    socket.join(data.room);
-
-    // update all other clients about the online presense
-    updatePresence(data.room, socket, 'online');
-
-    // send to the client, a list of all subscribed clients in this room
-    socket.emit('list-clients', {
-        room: data.room,
-        clients: getClientsInRoom(socket.id, data.room)
+function onSendMessage(client, data) {
+    var player = players.get(client.id);
+    io.sockets.emit(player.room).emit('receive-message', {
+        playerName: player.name,
+        message: data.message
     });
 }
+function onSetObserver(client, data) {
+    var player = players.get(client.id);
+    player.isObserver = data.isObserver;
 
-function unsubscribe(socket, data) {
-    // update all clients about offline presence
-    updatePresence(data.room, socket, 'offline');
-
-    // remove the client from the room
-    socket.leave(data.room);
-
-    // if last client, then remove the room
-    if (!countClientsInRoom(data.room)) {
-        // update all clients about room removal
-        // io.sockets.emit('removeroom', { room: data.room });
-    }
-}
-
-function getRooms() {
-    return Object.keys(io.sockets.manager.rooms);
-}
-
-function getClientsInRoom(socketId, room) {
-    var socketIds = io.sockets.manager.rooms['/' + room];
-    var roomClients = [];
-
-    if (socketIds && socketIds.length > 0) {
-        for (var i = 0, len = socketIds.length; i < len; i++) {
-            roomClients.push(clients.get(socketIds[i]));
-        }
-    }
-    return roomClients;
-}
-
-function countClientsInRoom(room) {
-    if (io.sockets.manager.rooms['/' + room]) {
-        return io.sockets.manager.rooms['/' + room].length;
-    }
-    return 0;
-}
-
-function updatePresence(room, socket, state) {
-    // socket.io may add a trailing '/' to the room name
-    room = room.replace('/', '');
-
-    socket.broadcast.to(room).emit('set-presence', {
-        client: clients.get(socket.id),
-        state: state,
-        room: room
+    io.sockets.emit(player.room).emit('set-player-observer', {
+        playerId: player.id,
+        isObserver: player.isObserver
     });
 }
-
-function setObserver(socket, data) {
-    var client = clients.get(socket.id);
-    client.isObserver = data.isObserver;
-
-    io.sockets.emit(client.room).emit('set-observer', {
-        clientId: client.id,
-        isObserver: client.isObserver
-    });
-}
-
-function newGame(socket) {
-    game = new Game();
-    clients.forEach(function (value, key) {
-        if (!value.isObserver) {
-            game.addPlayer(value.id);
-        }
-    });
-
-    var client = clients.get(socket.id);
-    io.sockets.emit(client.room).emit('new-game', {
-        player: client.nickname,
-        playercount: game.numPlayers()
-    });
-}
-
-function submitVote(socket, data) {
+function onSubmitVote(client, data) {
     if (game) {
-        var client = clients.get(socket.id);
+        var player = players.get(client.id);
 
         // broadcast vote status
         var hasVoted = false;
         if (data.vote) hasVoted = true;
 
-        io.sockets.emit(client.room).emit('set-vote', {
-            clientId: client.id,
+        io.sockets.emit(player.room).emit('set-player-vote-status', {
+            clientId: player.id,
             hasVoted: hasVoted
         });
 
         // check for game end
-        game.setVote(client.id, data.vote);
+        game.setVote(player.id, data.vote);
         if (!game.needsVotes()) {
 
-            io.sockets.emit(client.room).emit('end-game', {
+            io.sockets.emit(player.room).emit('set-game-ended', {
                 average: game.getAverage(),
                 results: game.getResults()
             });
         }
     }
 }
+function onStartGame(client) {
+    game = new Game();
+    players.forEach(function (value) {
+        if (!value.isObserver) {
+            game.addPlayer(value.id);
+        }
+    });
 
-function cancelGame(socket) {
-    var client = clients.get(socket.id);
-    io.sockets.emit(client.room).emit('cancel-game', {
-        player: client.nickname,
+    var player = players.get(client.id);
+    io.sockets.emit(player.room).emit('set-game-started', {
+        player: player.name,
+        playerCount: game.numPlayers()
+    });
+}
+function onCancelGame(client) {
+    var player = players.get(client.id);
+    io.sockets.emit(player.room).emit('set-game-cancelled', {
+        player: player.name
     });
 }
 
+function getClientsInRoom(room) {
+    var socketIds = io.sockets.manager.rooms['/' + room];
+    var roomClients = [];
+
+    if (socketIds && socketIds.length > 0) {
+        for (var i = 0, len = socketIds.length; i < len; i++) {
+            roomClients.push(players.get(socketIds[i]));
+        }
+    }
+    return roomClients;
+}
+function updatePresence(client, state) {
+    var player = players.get(client.id);
+    io.sockets.emit(player.room).emit('set-player-presence', {
+        player: player,
+        state: state
+    });
+}
 function generateId() {
     var s4 = function () {
         return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);

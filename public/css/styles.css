@@ -80,33 +80,36 @@ body {
         width: 100px;
     }
 
-ul.card-list .card {
+div.card-list .card {
     cursor: pointer;
     display: inline-block;
-    margin: 5px;
-    width: 30px;
-    height: 60px;
+    margin: 2px;
+    width: 50px;
+    height: 70px;
     line-height: 60px;
 }
 
-ul.player-list li {
+div.player-list .player {
     display: inline-block;
     text-align: center;
-}
-
-.player {
     position: relative;
 }
 
-    .player .status-icon {
-        position: absolute;
-        top: 0;
-        right: 0;
-    }
+.player .status-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
 
-    .player span {
-        display: block;
-    }
+.player .card {
+    height: 45px;
+    line-height: 33px;
+    width: 35px;
+}
+
+.player span {
+    display: block;
+}
 
 .observer {
     opacity: 0.5;
