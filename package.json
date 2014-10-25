@@ -1,1 +1,13 @@
-{"name":"planning-poker","version":"0.0.1","dependencies":{"express":"3.3.x","dict":"1.4.x","socket.io":"~0.9.16"},"engines":{"node":"0.6.20"}}
+{
+  "name": "planning-poker",
+  "version": "0.0.1",
+  "description": "Realtime Planning Poker by Mortware",
+  "dependencies": {
+    "dict": "1.4.x",
+    "express": "^3.18.1",
+    "socket.io": "^0.9.17"
+  },
+  "engines": {
+    "node": "0.6.20"
+  }
+}
