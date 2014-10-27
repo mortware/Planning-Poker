@@ -1,4 +1,6 @@
-﻿angular.module('app', [])
+﻿angular.module('app', [
+    'ngMaterial'
+])
     .factory('socket', function () {
         return io.connect('http://localhost:3000');
     })
